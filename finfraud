@@ -1,0 +1,77 @@
+#imported libraries for data analysis, stats, and plotting
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+#ingested data from open source csv file on financial fraud
+data = pd.read_csv('/Users/mateo_ronq/PycharmProjects/finfraud/data.csv')
+#changed settings in pandas library to show all information from csv data
+pd.set_option('display.max_rows', None, 'display.max_columns', None, 'display.width', None)
+#analyzed specific characteristics of the csv file
+print(data.shape)
+print(data.columns)
+print(data.head(15))
+#analyzed statistical parameters of all the information included in csv file
+print(data.describe(include='all'))
+#analyzed all different data types in csv file in order to manage them
+print(data.dtypes)
+
+#assigned variables to generate my first plot
+x = ['Debit','Credit']
+#managing object data type by obtaining counts and putting it in a dataframe
+y_counts = data['TransactionType'].value_counts()
+y = y_counts.values
+
+#how to structure the order of my plots
+fig, (ax1,ax2,ax3) = plt.subplots(3,1,figsize=(14,14))
+
+#made bar chart
+ax1.bar(x,y, color=['red','green'])
+#loop for adding value labels to individual bars
+for i, v in enumerate(y):
+    ax1.text(i, v+40, str(v), ha='center', va='center')
+#loop for adding percentage labels to individual bars
+total = sum(y)
+percentages = [(value / total) * 100 for value in y]
+for i, v in enumerate(percentages):
+    ax1.text(i, v + 250, f'{v:.1f}%', ha='center')
+#bar chart labels
+ax1.set_title('Instances of Financial Fraud per Account Type in 2024',pad=10)
+ax1.set_xlabel('Account type',labelpad=-5)
+ax1.set_ylabel('Number of instances')
+
+#wrangled (merged) two data columns into one for seeing potential correlation
+x = pd.DataFrame(data['CustomerAge'])
+z = pd.DataFrame(data['TransactionAmount'])
+#w contains two data types (int and float) in the same dataframe
+w = pd.merge(x,z,left_index=True,right_index=True)
+print(w.head(15))
+
+#histogram for seeing distribution type of customer ages in cases
+ax2.hist(w['CustomerAge'], bins=63, color='blue', alpha=0.7)
+ax2.set_title('Distribution of Ages of Financial Fraud Victims')
+ax2.set_xlabel('Customer age', labelpad=-1)
+ax2.set_ylabel('Frequency')
+mean_x = np.mean(w['CustomerAge'])
+#mean and std dev calculations and plotting for managing outliers
+ax2.axvline(mean_x, color='r', linestyle='--', label='Mean')
+std_x = np.std(w['CustomerAge'])
+ax2.axvline(mean_x + 1.5 * std_x, color='g', linestyle='--', label='1.5σ')
+ax2.axvline(mean_x - 1.5 * std_x, color='g', linestyle='--')
+ax2.legend()
+
+#histogram for seeing distribution type of transaction amounts in cases
+ax3.hist(w['TransactionAmount'], bins=100, color='blue', alpha=0.7)
+ax3.set_title('Distribution of Transaction Amounts in Financial Fraud Cases')
+ax3.set_xlabel('Transaction amount')
+ax3.set_ylabel('Frequency')
+#mean and std dev calculations and plotting for managing outliers
+mean_z = np.mean(w['TransactionAmount'])
+ax3.axvline(mean_z, color='r', linestyle='--', label='Mean')
+std_z = np.std(w['TransactionAmount'])
+ax3.axvline(mean_z + 1.5 * std_z, color='g', linestyle='--', label='1.5σ')
+ax3.legend()
+
+#rotating labels on plots for ease of reading and displaying
+plt.xticks(rotation='horizontal')
+plt.show()
